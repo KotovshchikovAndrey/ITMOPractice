@@ -10,7 +10,6 @@ class PostgresMasterConnection:
     _pool_max_size: int = 3
     _timeout: int = 30
 
-    _current_pool: int = 0
     _connection_pool: asyncpg.Pool
 
     def __init__(self, connection: PostgresConnectionDTO) -> None:
@@ -21,12 +20,11 @@ class PostgresMasterConnection:
         if not self._connection_pool:
             raise Exception("Connection pool is not initialized!")
 
-        pool = self._connection_pools[self._current_pool]
-        connection = await pool.acquire()
+        connection = await self._connection_pool.acquire()
         try:
             yield connection
         finally:
-            await pool.release(connection)
+            await self._connection_pool.release(connection)
 
     async def connect(self) -> None:
         self._connection_pool = await asyncpg.create_pool(
