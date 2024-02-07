@@ -1,6 +1,6 @@
 import typing as tp
-from io import BytesIO
 from abc import abstractmethod
+from io import BytesIO
 
 
 class IFileRepository(tp.Protocol):
@@ -9,4 +9,5 @@ class IFileRepository(tp.Protocol):
         """Return file url"""
 
     @abstractmethod
-    async def get_file(self, file_url: str) -> BytesIO: ...
+    async def get_file(self, file_url: str) -> BytesIO:
+        ...

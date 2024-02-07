@@ -1,8 +1,9 @@
+import hashlib
 import typing as tp
 from io import BytesIO
-import hashlib
 
 from kink import inject
+
 from domain.repositories.file_repository import IFileRepository
 
 

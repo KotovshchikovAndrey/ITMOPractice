@@ -1,16 +1,16 @@
 import typing as tp
-from uuid import UUID
 from io import BytesIO
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, status, UploadFile, Form, File
+from fastapi import APIRouter, Depends, File, Form, UploadFile, status
 from kink import di
 
-from domain.models.city_point import PointCreate, CityCreate, TagsCreate
+from domain.models.city_point import CityCreate, PointCreate, TagsCreate
 from domain.services.city_point_service import CityPointService
-from infrastructure.config.settings import settings
 from infrastructure.api.dto import responses
+from infrastructure.config.settings import settings
 
-router = APIRouter(prefix=f"{settings.api_prefix}")
+router = APIRouter(prefix=settings.api_prefix)
 
 
 @router.get("/city", response_model=responses.GetCitiesResponse)

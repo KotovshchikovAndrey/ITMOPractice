@@ -1,7 +1,8 @@
-from io import BytesIO
 import typing as tp
-from uuid import UUID, uuid4
 from datetime import datetime
+from io import BytesIO
+from uuid import UUID, uuid4
+
 from pydantic import BaseModel, Field, conlist
 
 
@@ -28,7 +29,7 @@ class BasePoint(BaseModel):
     subtitle: str
     description: tp.Annotated[str, Field(default="")]
     image_url: tp.Optional[str] = None
-    coordinates: tp.Tuple[int, int]
+    coordinates: tp.Tuple[float, float]
 
     class Config:
         from_attributes = True
@@ -44,7 +45,7 @@ class PointInDb(BasePoint):
 
 class PointCreate(BasePoint):
     city_pk: UUID
-    tags: conlist(str, min_length=1)
+    tags: tp.Annotated[tp.List[str], conlist(str, min_length=1)]
 
 
 class PointWithTag(BasePoint):
@@ -81,7 +82,8 @@ class FavoritePointInDb(BaseFavoritePoint):
         from_attributes = True
 
 
-class FavoritePointCreate(BaseFavoritePoint): ...
+class FavoritePointCreate(BaseFavoritePoint):
+    ...
 
 
 class TagsCreate(BaseModel):

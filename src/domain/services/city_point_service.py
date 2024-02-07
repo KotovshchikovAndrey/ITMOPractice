@@ -1,23 +1,24 @@
 import typing as tp
-from uuid import UUID
 from io import BytesIO
+from uuid import UUID
+
 from kink import inject
 
 from domain.exceptions.city_not_found import CityNotFound
+from domain.exceptions.coordinates_occupied import CoordinatesOccupied
 from domain.exceptions.invalid_tags import InvalidTags
-
-from domain.repositories.city_point_repository import ICityPointRepository
-from domain.repositories.cache_repository import ICacheRepository
-from domain.services.file_service import FileService
 from domain.models.city_point import (
-    TagPoints,
+    BasePoint,
     CityCreate,
     CityInDb,
-    PointInDb,
-    PointCreate,
-    BasePoint,
     CityPointsCache,
+    PointCreate,
+    PointInDb,
+    TagPoints,
 )
+from domain.repositories.cache_repository import ICacheRepository
+from domain.repositories.city_point_repository import ICityPointRepository
+from domain.services.file_service import FileService
 
 
 @inject
@@ -80,14 +81,14 @@ class CityPointService:
         image: tp.Optional[BytesIO] = None,
         image_ext: tp.Optional[str] = None,
     ):
-
-        city = await self._repository.get_city_by_pk(city_pk=point.city_pk)
-        if city is None:
+        if not await self._is_city_exists(point.city_pk):
             raise CityNotFound()
 
-        allowed_tags = await self._repository.get_all_tag_names()
-        if len(set(point.tags).difference(allowed_tags)) != 0:
+        if not await self._is_tags_valid(point.tags):
             raise InvalidTags()
+
+        if await self._is_coordinates_occupied(point.coordinates):
+            raise CoordinatesOccupied()
 
         new_point = PointInDb(**point.model_dump(exclude=("tags",)))
         if image is not None:
@@ -103,3 +104,17 @@ class CityPointService:
         exists_tags = await self._repository.get_all_tag_names()
         tags_for_create = set(tags).difference(exists_tags)
         await self._repository.create_tags(tags_for_create)
+
+    async def _is_city_exists(self, city_pk: UUID) -> bool:
+        city = await self._repository.get_city_by_pk(city_pk)
+        return city is not None
+
+    async def _is_coordinates_occupied(
+        self, coordinates: tp.Tuple[float, float]
+    ) -> bool:
+        point = await self._repository.get_point_by_coordinates(coordinates)
+        return point is not None
+
+    async def _is_tags_valid(self, tags: tp.List[str]) -> bool:
+        allowed_tags = await self._repository.get_all_tag_names()
+        return len(set(tags).difference(allowed_tags)) == 0

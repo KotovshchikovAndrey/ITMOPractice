@@ -1,10 +1,11 @@
+import json
 import typing as tp
 from uuid import UUID
-from kink import inject
-import json
-import aiomcache
 
-from domain.models.city_point import CityPointsCache, BaseCityPointsCache
+import aiomcache
+from kink import inject
+
+from domain.models.city_point import BaseCityPointsCache, CityPointsCache
 from domain.repositories.cache_repository import ICacheRepository
 from infrastructure.config.settings import settings
 

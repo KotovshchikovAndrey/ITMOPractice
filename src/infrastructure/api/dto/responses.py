@@ -1,6 +1,8 @@
 import typing as tp
 from uuid import UUID
+
 from pydantic import BaseModel
+
 from domain.models.city_point import CityInDb, TagPoints
 
 

@@ -1,9 +1,10 @@
 import typing as tp
 from typing import List
 from uuid import UUID
+
 from kink import inject
 
-from domain.models.city_point import CityInDb, PointInDb, PointWithTag
+from domain.models.city_point import BasePoint, CityInDb, PointInDb, PointWithTag
 from domain.repositories.city_point_repository import ICityPointRepository
 from infrastructure.database.postgres.master_connection import PostgresMasterConnection
 from infrastructure.database.postgres.slave_connection import PostgresSlaveConnection
@@ -62,6 +63,20 @@ class PostgresCityPointRepository(ICityPointRepository):
         async with self._read_connection.get_connection() as connection:
             rows = await connection.fetch(query, city_pk)
             return [PointWithTag(**dict(row)) for row in rows]
+
+    async def get_point_by_coordinates(self, coordinates: tp.Tuple[float, float]):
+        query = """SELECT 
+                    title, 
+                    subtitle, 
+                    description, 
+                    image_url, 
+                    coordinates
+                FROM point WHERE coordinates[0] = $1 AND coordinates[1] = $2;"""
+
+        async with self._read_connection.get_connection() as connection:
+            row = await connection.fetchrow(query, *coordinates)
+            if row is not None:
+                return BasePoint(**dict(row))
 
     async def create_point(self, point: PointInDb):
         query = """INSERT INTO point (
