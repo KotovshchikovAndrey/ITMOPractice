@@ -25,7 +25,6 @@ class PostgresCityPointRepository(ICityPointRepository):
     async def get_city_by_pk(self, city_pk: UUID):
         query = """SELECT * FROM city WHERE pk = $1;"""
         async with self._read_connection.get_connection() as connection:
-            connection: Connection
             row = await connection.fetchrow(query, city_pk)
             if row is not None:
                 return CityInDb(**dict(row))

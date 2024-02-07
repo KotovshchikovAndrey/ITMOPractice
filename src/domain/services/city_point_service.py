@@ -4,6 +4,9 @@ import asyncio
 from io import BytesIO
 from kink import inject
 
+from domain.exceptions.city_not_found import CityNotFound
+from domain.exceptions.invalid_tags import InvalidTags
+
 from domain.repositories.city_point_repository import ICityPointRepository
 from domain.models.city_point import (
     TagPoints,
@@ -61,11 +64,11 @@ class CityPointService:
 
         city = await self._repository.get_city_by_pk(city_pk=point.city_pk)
         if city is None:
-            raise
+            raise CityNotFound()
 
         allowed_tags = await self._repository.get_all_tag_names()
         if len(set(point.tags).difference(allowed_tags)) != 0:
-            raise
+            raise InvalidTags()
 
         new_point = PointInDb(**point.model_dump(exclude=("tags",)))
         new_point_pk = await self._repository.create_point(new_point)

@@ -1,12 +1,53 @@
 import uvicorn
-from fastapi import FastAPI
 
+from fastapi import FastAPI, Request, status
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+
+from domain.exceptions.api_exception import ApiException
 from infrastructure import on_shutdown, on_startup
 from infrastructure.api.v1.rest_routes import router as rest_router
 from infrastructure.config.settings import settings
+from infrastructure.helpers.mappers import HttpExceptionStatusMapper
 
 app = FastAPI(on_startup=[on_startup], on_shutdown=[on_shutdown])
 app.include_router(rest_router)
+
+
+@app.exception_handler(RequestValidationError)
+async def handle_validation_exception(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "status_code": status.HTTP_422_UNPROCESSABLE_ENTITY,
+            "message": exc.errors(),
+        },
+    )
+
+
+@app.exception_handler(ApiException)
+def handle_api_exception(request: Request, exc: ApiException):
+    mapper = HttpExceptionStatusMapper(exception=exc)
+    status_code = mapper.do_mapping()
+
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "status_code": status_code,
+            "message": exc.message,
+        },
+    )
+
+
+@app.exception_handler(Exception)
+def handle_internal_server_error(request: Request, exc: ApiException):
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "status_code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+            "message": "Внутренняя ошибка сервера!",
+        },
+    )
 
 
 if __name__ == "__main__":
