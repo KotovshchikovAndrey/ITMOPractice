@@ -35,4 +35,5 @@
 **/.vscode
 
 **/media
+**/assets
 !requirements.txt

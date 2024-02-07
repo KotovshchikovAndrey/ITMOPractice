@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     postgres_password: str
     postgres_database: str
 
+    memcached_host: str
+    memcached_port: int
+
     api_prefix: str = "/api/v1"
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

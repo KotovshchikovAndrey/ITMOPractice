@@ -14,6 +14,9 @@ class CityInDb(BaseModel):
     class Config:
         from_attributes = True
 
+    def set_image_url(self, image_url: str) -> None:
+        self.image_url = image_url
+
 
 class CityCreate(BaseModel):
     name: tp.Annotated[str, Field(min_length=2, max_length=70)]
@@ -35,6 +38,9 @@ class PointInDb(BasePoint):
     pk: tp.Annotated[UUID, Field(default_factory=uuid4)]
     city_pk: UUID
 
+    def set_image_url(self, image_url: str) -> None:
+        self.image_url = image_url
+
 
 class PointCreate(BasePoint):
     city_pk: UUID
@@ -48,6 +54,18 @@ class PointWithTag(BasePoint):
 class TagPoints(BaseModel):
     tag_name: str
     points: tp.List[BasePoint] = []
+
+
+class BaseCityPointsCache(BaseModel):
+    city_pk: UUID
+    points: tp.List[TagPoints] = []
+
+    class Config:
+        from_attributes = True
+
+
+class CityPointsCache(BaseCityPointsCache):
+    ttl: tp.Annotated[int, Field(default=10)]  # 10 seconds
 
 
 class BaseFavoritePoint(BaseModel):

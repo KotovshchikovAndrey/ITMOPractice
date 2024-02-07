@@ -22,6 +22,6 @@ class FileService:
     async def get_file(self, file_url: str):
         return await self._repository.get_file(file_url)
 
-    def _get_filename_from_hash(file: BytesIO, file_ext: str) -> str:
+    def _get_filename_from_hash(self, file: BytesIO, file_ext: str) -> str:
         filehash = hashlib.sha3_256(file.getvalue()).digest().hex()
         return f"{filehash}.{file_ext}"

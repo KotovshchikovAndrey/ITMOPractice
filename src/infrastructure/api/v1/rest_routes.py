@@ -1,5 +1,6 @@
 import typing as tp
 from uuid import UUID
+from io import BytesIO
 
 from fastapi import APIRouter, Depends, status, UploadFile, Form, File
 from kink import di
@@ -7,11 +8,12 @@ from kink import di
 from domain.models.city_point import PointCreate, CityCreate, TagsCreate
 from domain.services.city_point_service import CityPointService
 from infrastructure.config.settings import settings
+from infrastructure.api.dto import responses
 
 router = APIRouter(prefix=f"{settings.api_prefix}")
 
 
-@router.get("/city")
+@router.get("/city", response_model=responses.GetCitiesResponse)
 async def get_cities(
     service: tp.Annotated[CityPointService, Depends(lambda: di[CityPointService])],
     limit: tp.Optional[int] = None,
@@ -21,37 +23,44 @@ async def get_cities(
     return {"cities": cities}
 
 
-@router.post("/city", status_code=status.HTTP_201_CREATED)
+@router.get("/city/{city_pk}", response_model=responses.GetCityPointsResponse)
+async def get_city_points(
+    service: tp.Annotated[CityPointService, Depends(lambda: di[CityPointService])],
+    city_pk: UUID,
+):
+    points = await service.get_city_points_grouped_by_tag(city_pk)
+    return {"city_pk": city_pk, "points": points}
+
+
+@router.post(
+    "/city",
+    status_code=status.HTTP_201_CREATED,
+    response_model=responses.CityCreateResponse,
+)
 async def create_new_city(
     service: tp.Annotated[CityPointService, Depends(lambda: di[CityPointService])],
     name: tp.Annotated[str, Form()],
     description: tp.Annotated[tp.Optional[str], Form()] = None,
     image: tp.Annotated[tp.Optional[UploadFile], File()] = None,
 ):
-    image_content = None
-    image_ext = None
+    image_content = image_ext = None
     if image is not None:
-        image_content = image.file
+        image_content = BytesIO(await image.read())
         image_ext = image.filename.split(".")[-1]
 
     city = CityCreate(name=name, description=description)
-    city_pk = await service.create_city(city, image_ext, image_content)
+    city_pk = await service.create_city(city, image_content, image_ext)
     return {
         "message": "City success created!",
         "city_pk": city_pk,
     }
 
 
-@router.get("/point")
-async def get_grouped_points(
-    service: tp.Annotated[CityPointService, Depends(lambda: di[CityPointService])],
-    city_pk: UUID,
-):
-    points = await service.get_city_points_grouped_by_tag(city_pk)
-    return {"points": points}
-
-
-@router.post("/point", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/point",
+    status_code=status.HTTP_201_CREATED,
+    response_model=responses.PointCreateResponse,
+)
 async def create_new_point(
     service: tp.Annotated[CityPointService, Depends(lambda: di[CityPointService])],
     point: PointCreate,
@@ -63,7 +72,11 @@ async def create_new_point(
     }
 
 
-@router.post("/tag", status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/tag",
+    status_code=status.HTTP_201_CREATED,
+    response_model=responses.SuccessMessageResponse,
+)
 async def create_tags(
     service: tp.Annotated[CityPointService, Depends(lambda: di[CityPointService])],
     tags: TagsCreate,
