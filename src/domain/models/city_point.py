@@ -1,6 +1,5 @@
 import typing as tp
 from datetime import datetime
-from io import BytesIO
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field, conlist
@@ -69,21 +68,20 @@ class CityPointsCache(BaseCityPointsCache):
     ttl: tp.Annotated[int, Field(default=10)]  # 10 seconds
 
 
-class BaseFavoritePoint(BaseModel):
-    user_pk: UUID
-    point_pk: UUID
-    created_at: tp.Annotated[datetime, Field(default_factory=datetime.utcnow)]
+# class BaseFavoritePoint(BaseModel):
+#     user_pk: UUID
+#     point_pk: UUID
+#     created_at: tp.Annotated[datetime, Field(default_factory=datetime.utcnow)]
 
 
-class FavoritePointInDb(BaseFavoritePoint):
-    pk: int
+# class FavoritePointInDb(BaseFavoritePoint):
+#     pk: int
 
-    class Config:
-        from_attributes = True
+#     class Config:
+#         from_attributes = True
 
 
-class FavoritePointCreate(BaseFavoritePoint):
-    ...
+# class FavoritePointCreate(BaseFavoritePoint): ...
 
 
 class TagsCreate(BaseModel):

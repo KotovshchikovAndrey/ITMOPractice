@@ -7,6 +7,7 @@ from kink import inject
 from domain.exceptions.city_not_found import CityNotFound
 from domain.exceptions.coordinates_occupied import CoordinatesOccupied
 from domain.exceptions.invalid_tags import InvalidTags
+from domain.exceptions.point_not_found import PointNotFound
 from domain.models.city_point import (
     BasePoint,
     CityCreate,
@@ -14,6 +15,7 @@ from domain.models.city_point import (
     CityPointsCache,
     PointCreate,
     PointInDb,
+    PointWithTag,
     TagPoints,
 )
 from domain.repositories.cache_repository import ICacheRepository
@@ -58,22 +60,31 @@ class CityPointService:
         if cache is not None:
             return cache.points
 
-        tag_points: tp.Dict[str, BasePoint] = {}
         city_points = await self._repository.get_city_points_with_tag(city_pk)
-        for point in city_points:
-            if tag_points.get(point.tag_name) is None:
-                tag_points[point.tag_name] = []
-
-            tag_points[point.tag_name].append(BasePoint.model_validate(point))
-
-        grouped_city_points: tp.List[TagPoints] = []
-        for tag, points in tag_points.items():
-            grouped_city_points.append(TagPoints(tag_name=tag, points=points))
+        grouped_city_points = await self._group_points_by_tag(city_points)
 
         cache = CityPointsCache(city_pk=city_pk, points=grouped_city_points)
         await self._cache_storage.set_city_points_cache(cache)
 
         return grouped_city_points
+
+    async def get_favorite_points_grouped_by_tag(self, user_pk: UUID):
+        favorite_points = await self._repository.get_favorite_points_with_tag(user_pk)
+        grouped_favorite_points = await self._group_points_by_tag(favorite_points)
+
+        return grouped_favorite_points
+
+    async def is_favorite_point_exists(self, user_pk: UUID, point_pk: UUID):
+        return await self._repository.favorite_point_exists(user_pk, point_pk)
+
+    async def set_favorite_point(self, user_pk: UUID, point_pk: UUID):
+        if not await self._is_point_exists(point_pk):
+            raise PointNotFound()
+
+        await self._repository.set_favorite_point(user_pk, point_pk)
+
+    async def delete_favorite_point(self, user_pk: UUID, point_pk: UUID):
+        await self._repository.delete_favorite_point(user_pk, point_pk)
 
     async def create_point(
         self,
@@ -105,9 +116,27 @@ class CityPointService:
         tags_for_create = set(tags).difference(exists_tags)
         await self._repository.create_tags(tags_for_create)
 
+    async def _group_points_by_tag(self, points: tp.List[PointWithTag]):
+        tag_points: tp.Dict[str, BasePoint] = {}
+        for point in points:
+            if tag_points.get(point.tag_name) is None:
+                tag_points[point.tag_name] = []
+
+            tag_points[point.tag_name].append(BasePoint.model_validate(point))
+
+        grouped_tag_points: tp.List[TagPoints] = []
+        for tag, points in tag_points.items():
+            grouped_tag_points.append(TagPoints(tag_name=tag, points=points))
+
+        return grouped_tag_points
+
     async def _is_city_exists(self, city_pk: UUID) -> bool:
         city = await self._repository.get_city_by_pk(city_pk)
         return city is not None
+
+    async def _is_point_exists(self, point_pk: UUID) -> bool:
+        point = await self._repository.get_point_by_pk(point_pk)
+        return point is not None
 
     async def _is_coordinates_occupied(
         self, coordinates: tp.Tuple[float, float]

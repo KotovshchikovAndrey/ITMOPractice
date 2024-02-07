@@ -7,9 +7,13 @@ from domain.models.user import UserInDb
 
 class IUserRepository(tp.Protocol):
     @abstractmethod
-    async def get_user_by_pk(self, pk: UUID) -> UserInDb:
+    async def get_user_by_pk(self, user_pk: UUID) -> tp.Optional[UserInDb]:
         ...
 
     @abstractmethod
-    async def create_user(self, user: UserInDb) -> None:
+    async def get_user_by_email(self, email: str) -> tp.Optional[UserInDb]:
+        ...
+
+    @abstractmethod
+    async def create_user(self, user: UserInDb) -> UUID:
         ...

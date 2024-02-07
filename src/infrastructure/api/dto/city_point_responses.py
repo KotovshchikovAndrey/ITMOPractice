@@ -4,6 +4,7 @@ from uuid import UUID
 from pydantic import BaseModel
 
 from domain.models.city_point import CityInDb, TagPoints
+from infrastructure.api.dto.common import SuccessMessageResponse
 
 
 class GetCitiesResponse(BaseModel):
@@ -13,10 +14,6 @@ class GetCitiesResponse(BaseModel):
 class GetCityPointsResponse(BaseModel):
     city_pk: UUID
     points: tp.List[TagPoints] = []
-
-
-class SuccessMessageResponse(BaseModel):
-    message: str
 
 
 class CityCreateResponse(SuccessMessageResponse):

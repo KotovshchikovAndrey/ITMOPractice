@@ -7,10 +7,9 @@ from kink import di
 
 from domain.models.city_point import CityCreate, PointCreate, TagsCreate
 from domain.services.city_point_service import CityPointService
-from infrastructure.api.dto import responses
-from infrastructure.config.settings import settings
+from infrastructure.api.dto import city_point_responses as responses
 
-router = APIRouter(prefix=settings.api_prefix)
+router = APIRouter(prefix="/city_point")
 
 
 @router.get("/city", response_model=responses.GetCitiesResponse)
@@ -51,7 +50,7 @@ async def create_new_city(
     city = CityCreate(name=name, description=description)
     city_pk = await service.create_city(city, image_content, image_ext)
     return {
-        "message": "City success created!",
+        "message": "Город успешно создан!",
         "city_pk": city_pk,
     }
 
@@ -67,7 +66,7 @@ async def create_new_point(
 ):
     point_pk = await service.create_point(point)
     return {
-        "message": "Point success created!",
+        "message": "Городская точка успешно создана!",
         "point_pk": point_pk,
     }
 
@@ -82,4 +81,4 @@ async def create_tags(
     tags: TagsCreate,
 ):
     await service.create_tags(tags.tags)
-    return {"message": "Tags success created!"}
+    return {"message": "Теги успешно созданы!"}

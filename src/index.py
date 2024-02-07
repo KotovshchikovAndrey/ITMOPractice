@@ -5,12 +5,15 @@ from fastapi.responses import JSONResponse
 
 from domain.exceptions.api_exception import ApiException
 from infrastructure import on_shutdown, on_startup
-from infrastructure.api.v1.rest_routes import router as rest_router
+from infrastructure.api.v1.city_point_routes import router as city_point_router
+from infrastructure.api.v1.user_routes import router as user_router
 from infrastructure.config.settings import settings
 from infrastructure.helpers.mappers import HttpExceptionStatusMapper
 
 app = FastAPI(on_startup=[on_startup], on_shutdown=[on_shutdown])
-app.include_router(rest_router)
+
+app.include_router(city_point_router, prefix=settings.api_prefix)
+app.include_router(user_router, prefix=settings.api_prefix)
 
 
 @app.exception_handler(RequestValidationError)

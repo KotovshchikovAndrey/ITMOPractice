@@ -23,6 +23,10 @@ class ICityPointRepository(tp.Protocol):
         ...
 
     @abstractmethod
+    async def get_point_by_pk(self, point_pk: UUID) -> tp.Optional[BasePoint]:
+        ...
+
+    @abstractmethod
     async def get_point_by_coordinates(
         self, coordinates: tp.Tuple[float, float]
     ) -> tp.Optional[BasePoint]:
@@ -32,21 +36,23 @@ class ICityPointRepository(tp.Protocol):
     async def create_point(self, point: PointInDb) -> UUID:
         ...
 
-    # @abstractmethod
-    # async def delete_point(self, point_pk: UUID) -> None: ...
+    @abstractmethod
+    async def favorite_point_exists(self, user_pk: UUID, point_pk: UUID) -> bool:
+        ...
 
-    # @abstractmethod
-    # async def get_favorite_points_by_tag(
-    #     self, user_pk: UUID, limit: int, offset: int
-    # ) -> tp.List[PointInFavorite]: ...
+    @abstractmethod
+    async def get_favorite_points_with_tag(
+        self, user_pk: UUID
+    ) -> tp.List[PointWithTag]:
+        ...
 
-    # @abstractmethod
-    # async def create_favorite_point(
-    #     self, favorite_point: FavoritePointCreate
-    # ) -> None: ...
+    @abstractmethod
+    async def set_favorite_point(self, user_pk: UUID, point_pk: UUID) -> None:
+        ...
 
-    # @abstractmethod
-    # async def delete_favorite_point(self, user_pk: UUID, point_pk: UUID) -> None: ...
+    @abstractmethod
+    async def delete_favorite_point(self, user_pk: UUID, point_pk: UUID) -> None:
+        ...
 
     @abstractmethod
     async def get_all_tag_names(self) -> tp.List[str]:

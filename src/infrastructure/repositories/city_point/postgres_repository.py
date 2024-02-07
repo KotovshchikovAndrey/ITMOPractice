@@ -1,5 +1,4 @@
 import typing as tp
-from typing import List
 from uuid import UUID
 
 from kink import inject
@@ -54,15 +53,28 @@ class PostgresCityPointRepository(ICityPointRepository):
                     p.description, 
                     p.image_url, 
                     p.coordinates,
-                    t.name as tag_name
+                    pt.tag_name as tag_name
                 FROM point AS p
                     JOIN point_tag AS pt ON pt.point_pk = p.pk
-                    JOIN tag AS t ON t.name = pt.tag_name
                 WHERE p.city_pk = $1;"""
 
         async with self._read_connection.get_connection() as connection:
             rows = await connection.fetch(query, city_pk)
             return [PointWithTag(**dict(row)) for row in rows]
+
+    async def get_point_by_pk(self, point_pk: UUID):
+        query = """SELECT 
+                    title, 
+                    subtitle, 
+                    description, 
+                    image_url, 
+                    coordinates
+                FROM point WHERE pk = $1;"""
+
+        async with self._read_connection.get_connection() as connection:
+            row = await connection.fetchrow(query, point_pk)
+            if row is not None:
+                return BasePoint(**dict(row))
 
     async def get_point_by_coordinates(self, coordinates: tp.Tuple[float, float]):
         query = """SELECT 
@@ -91,6 +103,47 @@ class PostgresCityPointRepository(ICityPointRepository):
 
         async with self._write_connection.get_connection() as connection:
             return await connection.fetchval(query, *point.model_dump().values())
+
+    async def favorite_point_exists(self, user_pk: UUID, point_pk: UUID):
+        query = """SELECT pk FROM favorite_point 
+                        WHERE user_pk = $1 AND point_pk = $2;"""
+
+        async with self._read_connection.get_connection() as connection:
+            pk = await connection.fetchval(query, user_pk, point_pk)
+            return pk is not None
+
+    async def get_favorite_points_with_tag(self, user_pk: UUID):
+        query = """SELECT 
+                    p.title, 
+                    p.subtitle, 
+                    p.description, 
+                    p.image_url, 
+                    p.coordinates,
+                    pt.tag_name as tag_name
+                FROM point AS p
+                    JOIN favorite_point AS fp ON fp.point_pk = p.pk
+                    JOIN point_tag AS pt ON pt.point_pk = p.pk
+                WHERE fp.user_pk = $1;"""
+
+        async with self._read_connection.get_connection() as connection:
+            rows = await connection.fetch(query, user_pk)
+            return [PointWithTag(**dict(row)) for row in rows]
+
+    async def set_favorite_point(self, user_pk: UUID, point_pk: UUID):
+        query = """INSERT INTO favorite_point (
+                    user_pk,
+                    point_pk)
+                VALUES ($1, $2);"""
+
+        async with self._write_connection.get_connection() as connection:
+            await connection.execute(query, user_pk, point_pk)
+
+    async def delete_favorite_point(self, user_pk: UUID, point_pk: UUID):
+        query = """DELETE FROM favorite_point 
+                    WHERE user_pk = $1 AND point_pk = $2;"""
+
+        async with self._write_connection.get_connection() as connection:
+            await connection.execute(query, user_pk, point_pk)
 
     async def get_all_tag_names(self):
         query = """SELECT name FROM tag;"""
