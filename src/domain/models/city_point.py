@@ -1,3 +1,4 @@
+from io import BytesIO
 import typing as tp
 from uuid import UUID, uuid4
 from datetime import datetime
@@ -40,7 +41,7 @@ class PointCreate(BasePoint):
     tags: conlist(str, min_length=1)
 
 
-class PointInFavorite(BasePoint):
+class PointWithTag(BasePoint):
     tag_name: str
 
 

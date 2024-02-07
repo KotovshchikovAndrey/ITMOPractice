@@ -5,15 +5,13 @@ from uuid import UUID
 from domain.models.city_point import (
     CityInDb,
     PointInDb,
-    BasePoint,
-    FavoritePointCreate,
-    PointInFavorite,
+    PointWithTag,
 )
 
 
 class ICityPointRepository(tp.Protocol):
-    # @abstractmethod
-    # async def get_cities(self, limit: int, offset: int) -> tp.List[CityInDb]: ...
+    @abstractmethod
+    async def get_cities(self, limit: int, offset: int) -> tp.List[CityInDb]: ...
 
     @abstractmethod
     async def get_city_by_pk(self, city_pk: UUID) -> tp.Optional[CityInDb]: ...
@@ -22,9 +20,9 @@ class ICityPointRepository(tp.Protocol):
     async def create_city(self, city: CityInDb) -> UUID: ...
 
     @abstractmethod
-    async def get_points_by_city_and_tag(
-        self, city_pk: UUID, tag_name: str
-    ) -> tp.List[BasePoint]: ...
+    async def get_city_points_with_tag(
+        self, city_pk: UUID
+    ) -> tp.List[PointWithTag]: ...
 
     @abstractmethod
     async def create_point(self, point: PointInDb) -> UUID: ...

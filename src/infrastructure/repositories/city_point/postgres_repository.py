@@ -1,9 +1,9 @@
 import typing as tp
+from typing import List
 from uuid import UUID
 from kink import inject
-from asyncpg import Connection
 
-from domain.models.city_point import BasePoint, CityInDb, PointInDb
+from domain.models.city_point import CityInDb, PointInDb, PointWithTag
 from domain.repositories.city_point_repository import ICityPointRepository
 from infrastructure.database.postgres.master_connection import PostgresMasterConnection
 from infrastructure.database.postgres.slave_connection import PostgresSlaveConnection
@@ -21,6 +21,12 @@ class PostgresCityPointRepository(ICityPointRepository):
     ) -> None:
         self._read_connection = read_connection
         self._write_connection = write_connection
+
+    async def get_cities(self, limit: int, offset: int):
+        query = """SELECT * FROM city ORDER BY name LIMIT $1 OFFSET $2;"""
+        async with self._read_connection.get_connection() as connection:
+            rows = await connection.fetch(query, limit, offset)
+            return [CityInDb(**dict(row)) for row in rows]
 
     async def get_city_by_pk(self, city_pk: UUID):
         query = """SELECT * FROM city WHERE pk = $1;"""
@@ -40,22 +46,22 @@ class PostgresCityPointRepository(ICityPointRepository):
         async with self._write_connection.get_connection() as connection:
             return await connection.fetchval(query, *city.model_dump().values())
 
-    async def get_points_by_city_and_tag(self, city_pk: UUID, tag_name: str):
+    async def get_city_points_with_tag(self, city_pk: UUID):
         query = """SELECT 
                     p.title, 
                     p.subtitle, 
                     p.description, 
                     p.image_url, 
-                    p.coordinates 
+                    p.coordinates,
+                    t.name as tag_name
                 FROM point AS p
                     JOIN point_tag AS pt ON pt.point_pk = p.pk
-                WHERE pt.tag_name = $1 
-                    AND p.city_pk = $2;"""
+                    JOIN tag AS t ON t.name = pt.tag_name
+                WHERE p.city_pk = $1;"""
 
         async with self._read_connection.get_connection() as connection:
-            async with self._read_connection.get_connection() as connection:
-                rows = await connection.fetch(query, tag_name, city_pk)
-                return [BasePoint(**dict(row)) for row in rows]
+            rows = await connection.fetch(query, city_pk)
+            return [PointWithTag(**dict(row)) for row in rows]
 
     async def create_point(self, point: PointInDb):
         query = """INSERT INTO point (

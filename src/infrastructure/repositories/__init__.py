@@ -1,3 +1,7 @@
 from .city_point.postgres_repository import PostgresCityPointRepository
+from .file.local_repository import LocalFileRepository
 
-__all__ = ("PostgresCityPointRepository",)
+__all__ = (
+    "PostgresCityPointRepository",
+    "LocalFileRepository",
+)

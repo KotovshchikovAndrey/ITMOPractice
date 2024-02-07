@@ -2,15 +2,18 @@ import pathlib
 import hashlib
 from io import BytesIO
 from aiofile import async_open
+from kink import inject
 from domain.repositories.file_repository import IFileRepository
 
 
+@inject(alias=IFileRepository)
 class LocalFileRepository(IFileRepository):
     _upload_path = pathlib.Path(".") / "common" / "media"
 
-    async def save_file(self, file: BytesIO, file_ext: str):
-        file_hash = hashlib.sha3_256(file.getvalue()).digest().hex()
-        filename = f"{file_hash}.{file_ext}"
+    def __init__(self) -> None:
+        super().__init__()
+
+    async def save_file(self, file: BytesIO, filename: str):
         file_path = self._upload_path / filename
         if file_path.exists():
             return f"/{filename}"
@@ -21,7 +24,7 @@ class LocalFileRepository(IFileRepository):
         return f"/{filename}"
 
     async def get_file(self, file_url: str):
-        file_path = self._upload_path / file_url[1:]
+        file_path = str(self._upload_path.absolute()) + file_url
         file_buffer = BytesIO()
         async with async_open(file_path, "rb") as afs:
             file_buffer.write(await afs.read())
