@@ -151,12 +151,12 @@ class PostgresCityPointRepository(ICityPointRepository):
             rows = await connection.fetch(query)
             return [dict(row)["name"] for row in rows]
 
-    async def create_tags(self, tags: tp.List[str]):
+    async def create_tags(self, tags: tp.Iterable[str]):
         query = """INSERT INTO tag VALUES ($1);"""
         async with self._write_connection.get_connection() as connection:
             await connection.executemany(query, [(tag,) for tag in tags])
 
-    async def set_tags_for_point(self, tags: tp.List[str], point_pk: UUID):
+    async def set_tags_for_point(self, tags: tp.Iterable[str], point_pk: UUID):
         query = """INSERT INTO point_tag (
                     point_pk, 
                     tag_name) 

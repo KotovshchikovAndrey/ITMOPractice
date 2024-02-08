@@ -18,18 +18,6 @@ def setup_di_container() -> None:
                 password=settings.postgres_password,
                 database=settings.postgres_database,
             ),
-            PostgresConnectionDTO(
-                user=settings.postgres_user,
-                host=settings.postgres_host,
-                password=settings.postgres_password,
-                database=settings.postgres_database,
-            ),
-            PostgresConnectionDTO(
-                user=settings.postgres_user,
-                host=settings.postgres_host,
-                password=settings.postgres_password,
-                database=settings.postgres_database,
-            ),
         ]
     )
 

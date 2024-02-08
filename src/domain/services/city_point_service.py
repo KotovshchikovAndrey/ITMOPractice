@@ -2,6 +2,7 @@ import typing as tp
 from io import BytesIO
 from uuid import UUID
 
+import asyncio
 from kink import inject
 
 from domain.exceptions.city_not_found import CityNotFound
@@ -68,24 +69,6 @@ class CityPointService:
 
         return grouped_city_points
 
-    async def get_favorite_points_grouped_by_tag(self, user_pk: UUID):
-        favorite_points = await self._repository.get_favorite_points_with_tag(user_pk)
-        grouped_favorite_points = await self._group_points_by_tag(favorite_points)
-
-        return grouped_favorite_points
-
-    async def is_favorite_point_exists(self, user_pk: UUID, point_pk: UUID):
-        return await self._repository.favorite_point_exists(user_pk, point_pk)
-
-    async def set_favorite_point(self, user_pk: UUID, point_pk: UUID):
-        if not await self._is_point_exists(point_pk):
-            raise PointNotFound()
-
-        await self._repository.set_favorite_point(user_pk, point_pk)
-
-    async def delete_favorite_point(self, user_pk: UUID, point_pk: UUID):
-        await self._repository.delete_favorite_point(user_pk, point_pk)
-
     async def create_point(
         self,
         point: PointCreate,
@@ -107,9 +90,31 @@ class CityPointService:
             new_point.set_image_url(image_url)
 
         new_point_pk = await self._repository.create_point(new_point)
-        await self._repository.set_tags_for_point(point.tags, new_point_pk)
+        async with asyncio.TaskGroup() as tg:
+            tg.create_task(self._cache_storage.clear_city_points_cache())
+            tg.create_task(
+                self._repository.set_tags_for_point(point.tags, new_point_pk)
+            )
 
         return new_point_pk
+
+    async def get_favorite_points_grouped_by_tag(self, user_pk: UUID):
+        favorite_points = await self._repository.get_favorite_points_with_tag(user_pk)
+        grouped_favorite_points = await self._group_points_by_tag(favorite_points)
+
+        return grouped_favorite_points
+
+    async def is_favorite_point_exists(self, user_pk: UUID, point_pk: UUID):
+        return await self._repository.favorite_point_exists(user_pk, point_pk)
+
+    async def set_favorite_point(self, user_pk: UUID, point_pk: UUID):
+        if not await self._is_point_exists(point_pk):
+            raise PointNotFound()
+
+        await self._repository.set_favorite_point(user_pk, point_pk)
+
+    async def delete_favorite_point(self, user_pk: UUID, point_pk: UUID):
+        await self._repository.delete_favorite_point(user_pk, point_pk)
 
     async def create_tags(self, tags: tp.List[str]):
         exists_tags = await self._repository.get_all_tag_names()
