@@ -4,13 +4,26 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from kink import di
 
+from domain.models.user import UserCreate
 from domain.services.user_service import UserService
 from infrastructure.api.dto import user_responses as responses
 
 # Заглушка
-USER_PK = "595bf728-7d00-4d17-af56-78c9c5d885ea"
+USER_PK = "258548db-c35d-412c-99b8-cf0d926bba0f"
 
 router = APIRouter(prefix="/user")
+
+
+@router.post("/")
+async def create_new_user(
+    service: tp.Annotated[UserService, Depends(lambda: di[UserService])],
+    user: UserCreate,
+):
+    user_pk = await service.create_user(user)
+    return {
+        "user_pk": user_pk,
+        "message": "user success created!",
+    }
 
 
 @router.get("/me/favorite", response_model=responses.MyFavoritePointsResponse)

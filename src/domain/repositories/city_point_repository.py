@@ -2,7 +2,13 @@ import typing as tp
 from abc import abstractmethod
 from uuid import UUID
 
-from domain.models.city_point import BasePoint, CityInDb, PointInDb, PointWithTag
+from domain.models.city_point import (
+    BasePoint,
+    CityInDb,
+    PointDetail,
+    PointInDb,
+    PointWithTag,
+)
 
 
 class ICityPointRepository(tp.Protocol):
@@ -23,7 +29,7 @@ class ICityPointRepository(tp.Protocol):
         ...
 
     @abstractmethod
-    async def get_point_by_pk(self, point_pk: UUID) -> tp.Optional[BasePoint]:
+    async def get_point_by_pk(self, point_pk: UUID) -> tp.Optional[PointDetail]:
         ...
 
     @abstractmethod

@@ -3,7 +3,13 @@ from uuid import UUID
 
 from kink import inject
 
-from domain.models.city_point import BasePoint, CityInDb, PointInDb, PointWithTag
+from domain.models.city_point import (
+    BasePoint,
+    CityInDb,
+    PointDetail,
+    PointInDb,
+    PointWithTag,
+)
 from domain.repositories.city_point_repository import ICityPointRepository
 from infrastructure.database.postgres.master_connection import PostgresMasterConnection
 from infrastructure.database.postgres.slave_connection import PostgresSlaveConnection
@@ -47,11 +53,9 @@ class PostgresCityPointRepository(ICityPointRepository):
             return await connection.fetchval(query, *city.model_dump().values())
 
     async def get_city_points_with_tag(self, city_pk: UUID):
-        query = """SELECT 
+        query = """SELECT
+                    p.pk, 
                     p.title, 
-                    p.subtitle, 
-                    p.description, 
-                    p.image_url, 
                     p.coordinates,
                     pt.tag_name as tag_name
                 FROM point AS p
@@ -63,25 +67,24 @@ class PostgresCityPointRepository(ICityPointRepository):
             return [PointWithTag(**dict(row)) for row in rows]
 
     async def get_point_by_pk(self, point_pk: UUID):
-        query = """SELECT 
-                    title, 
-                    subtitle, 
-                    description, 
-                    image_url, 
+        query = """SELECT
+                    pk, 
+                    title,
+                    subtitle,
+                    description,
+                    image_url,
                     coordinates
                 FROM point WHERE pk = $1;"""
 
         async with self._read_connection.get_connection() as connection:
             row = await connection.fetchrow(query, point_pk)
             if row is not None:
-                return BasePoint(**dict(row))
+                return PointDetail(**dict(row))
 
     async def get_point_by_coordinates(self, coordinates: tp.Tuple[float, float]):
-        query = """SELECT 
+        query = """SELECT
+                    pk, 
                     title, 
-                    subtitle, 
-                    description, 
-                    image_url, 
                     coordinates
                 FROM point WHERE coordinates[0] = $1 AND coordinates[1] = $2;"""
 
@@ -92,14 +95,14 @@ class PostgresCityPointRepository(ICityPointRepository):
 
     async def create_point(self, point: PointInDb):
         query = """INSERT INTO point (
-                        title, 
-                        subtitle, 
-                        description, 
-                        image_url, 
-                        coordinates,
-                        pk,
-                        city_pk) 
-                    VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING pk;"""
+                    pk,
+                    title, 
+                    coordinates,
+                    subtitle, 
+                    description, 
+                    image_url, 
+                    city_pk) 
+                VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING pk;"""
 
         async with self._write_connection.get_connection() as connection:
             return await connection.fetchval(query, *point.model_dump().values())
@@ -113,11 +116,9 @@ class PostgresCityPointRepository(ICityPointRepository):
             return pk is not None
 
     async def get_favorite_points_with_tag(self, user_pk: UUID):
-        query = """SELECT 
+        query = """SELECT
+                    p.pk, 
                     p.title, 
-                    p.subtitle, 
-                    p.description, 
-                    p.image_url, 
                     p.coordinates,
                     pt.tag_name as tag_name
                 FROM point AS p

@@ -27,8 +27,8 @@ async def get_city_points(
     service: tp.Annotated[CityPointService, Depends(lambda: di[CityPointService])],
     city_pk: UUID,
 ):
-    points = await service.get_city_points_grouped_by_tag(city_pk)
-    return {"city_pk": city_pk, "points": points}
+    city, points = await service.get_city_points_grouped_by_tag(city_pk)
+    return {"city": city, "points": points}
 
 
 @router.post(
@@ -53,6 +53,15 @@ async def create_new_city(
         "message": "Город успешно создан!",
         "city_pk": city_pk,
     }
+
+
+@router.get("/point/{point_pk}", response_model=responses.PointDetailResponse)
+async def get_point_detail(
+    service: tp.Annotated[CityPointService, Depends(lambda: di[CityPointService])],
+    point_pk: UUID,
+):
+    point = await service.get_point_detail(point_pk)
+    return {"point": point}
 
 
 @router.post(

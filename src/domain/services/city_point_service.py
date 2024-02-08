@@ -56,10 +56,22 @@ class CityPointService:
 
         return await self._repository.create_city(new_city)
 
+    async def get_point_detail(self, point_pk: UUID):
+        point = await self._repository.get_point_by_pk(point_pk)
+        if point is None:
+            raise PointNotFound()
+
+        return point
+
     async def get_city_points_grouped_by_tag(self, city_pk: UUID):
+        city = await self._repository.get_city_by_pk(city_pk)
+        if city is None:
+            raise CityNotFound()
+
         cache = await self._cache_storage.get_city_points_cache(city_pk)
         if cache is not None:
-            return cache.points
+            print("get city points from cache!")
+            return city, cache.points
 
         city_points = await self._repository.get_city_points_with_tag(city_pk)
         grouped_city_points = await self._group_points_by_tag(city_points)
@@ -67,7 +79,8 @@ class CityPointService:
         cache = CityPointsCache(city_pk=city_pk, points=grouped_city_points)
         await self._cache_storage.set_city_points_cache(cache)
 
-        return grouped_city_points
+        print("get city points from database!")
+        return city, grouped_city_points
 
     async def create_point(
         self,

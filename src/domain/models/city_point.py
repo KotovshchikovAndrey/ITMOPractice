@@ -23,10 +23,8 @@ class CityCreate(BaseModel):
 
 
 class BasePoint(BaseModel):
+    pk: tp.Annotated[UUID, Field(default_factory=uuid4)]
     title: str
-    subtitle: str
-    description: tp.Annotated[str, Field(default="")]
-    image_url: tp.Optional[str] = None
     coordinates: tp.Tuple[float, float]
 
     class Config:
@@ -34,14 +32,22 @@ class BasePoint(BaseModel):
 
 
 class PointInDb(BasePoint):
-    pk: tp.Annotated[UUID, Field(default_factory=uuid4)]
+    subtitle: str
+    description: tp.Annotated[str, Field(default="")]
+    image_url: tp.Optional[str] = None
     city_pk: UUID
 
     def set_image_url(self, image_url: str) -> None:
         self.image_url = image_url
 
 
-class PointCreate(BasePoint):
+class PointDetail(BasePoint):
+    subtitle: str
+    description: tp.Annotated[str, Field(default="")]
+    image_url: tp.Optional[str] = None
+
+
+class PointCreate(PointDetail):
     city_pk: UUID
     tags: tp.Annotated[tp.Set[str], conlist(str, min_length=1)]
 

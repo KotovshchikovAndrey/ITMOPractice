@@ -29,15 +29,19 @@ class InMemoryCacheRepository(ICacheRepository):
         key = f"{self._city_points_prefix}:{city_pk}"
         city_points = await self._connection.get(key=key.encode())
         if city_points is not None:
-            data = {"city_pk": str(city_pk), "points": json.loads(city_points.decode())}
+            data = {
+                "city_pk": str(city_pk),
+                **json.loads(city_points.decode()),
+            }
+
             return BaseCityPointsCache.model_validate(data)
 
     async def set_city_points_cache(self, city_points: CityPointsCache):
         key = f"{self._city_points_prefix}:{city_points.city_pk}"
-        cached_value = city_points.model_dump(exclude=("city_pk", "ttl"))
+        cached_value = city_points.model_dump_json(include=("points",))
         await self._connection.set(
             key=key.encode(),
-            value=json.dumps(cached_value["points"]).encode(),
+            value=cached_value.encode(),
             exptime=city_points.ttl,
         )
 
@@ -52,7 +56,7 @@ class InMemoryCacheRepository(ICacheRepository):
         if user_favorite_points is not None:
             data = {
                 "user_pk": str(user_pk),
-                "points": json.loads(user_favorite_points.decode()),
+                **json.loads(user_favorite_points.decode()),
             }
 
             return BaseUserFavoritePointCache.model_validate(data)
@@ -61,10 +65,10 @@ class InMemoryCacheRepository(ICacheRepository):
         self, user_favorite_points: UserFavoritePointCache
     ):
         key = f"{self._user_favorite_points_prefix}:{user_favorite_points.user_pk}"
-        cached_value = user_favorite_points.model_dump(exclude=("user_pk", "ttl"))
+        cached_value = user_favorite_points.model_dump_json(include=("points",))
         await self._connection.set(
             key=key.encode(),
-            value=json.dumps(cached_value["points"]).encode(),
+            value=cached_value.encode(),
             exptime=user_favorite_points.ttl,
         )
 
