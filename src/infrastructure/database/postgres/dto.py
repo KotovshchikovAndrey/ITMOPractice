@@ -7,3 +7,4 @@ class PostgresConnectionDTO:
     host: str
     password: str
     database: str
+    port: int = 5432

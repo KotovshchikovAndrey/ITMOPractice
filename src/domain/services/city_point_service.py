@@ -1,8 +1,8 @@
+import asyncio
 import typing as tp
 from io import BytesIO
 from uuid import UUID
 
-import asyncio
 from kink import inject
 
 from domain.exceptions.city_not_found import CityNotFound

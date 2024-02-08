@@ -1,7 +1,7 @@
 import json
 import typing as tp
-from uuid import UUID
 from datetime import datetime
+from uuid import UUID
 
 import aiomcache
 from kink import inject

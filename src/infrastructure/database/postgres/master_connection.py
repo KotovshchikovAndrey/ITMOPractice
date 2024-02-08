@@ -35,6 +35,7 @@ class PostgresMasterConnection:
             host=self.connection.host,
             password=self.connection.password,
             database=self.connection.database,
+            port=self.connection.port,
         )
 
     async def close(self) -> None:

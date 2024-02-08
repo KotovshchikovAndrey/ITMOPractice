@@ -44,6 +44,7 @@ class PostgresSlaveConnection:
                 host=connection.host,
                 password=connection.password,
                 database=connection.database,
+                port=connection.port,
             )
 
             self._connection_pools.append(pool)

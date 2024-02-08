@@ -1,16 +1,15 @@
+import asyncio
 import typing as tp
 from uuid import UUID
 
-import asyncio
 from kink import inject
 
-from domain.models.user import UserFavoritePointCache
 from domain.exceptions.email_occupied import EmailOccupied
 from domain.exceptions.point_already_in_favorite import PointAlreadyInFavorite
-from domain.models.user import UserCreate, UserInDb
+from domain.models.user import UserCreate, UserFavoritePointCache, UserInDb
+from domain.repositories.cache_repository import ICacheRepository
 from domain.repositories.user_repository import IUserRepository
 from domain.services.city_point_service import CityPointService
-from domain.repositories.cache_repository import ICacheRepository
 
 
 @inject

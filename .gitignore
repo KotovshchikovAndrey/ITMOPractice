@@ -36,4 +36,5 @@
 
 **/media
 **/assets
+**/common
 !requirements.txt

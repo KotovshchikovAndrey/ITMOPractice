@@ -13,19 +13,28 @@ def setup_di_container() -> None:
     di[PostgresSlaveConnection] = PostgresSlaveConnection(
         connections=[
             PostgresConnectionDTO(
-                user=settings.postgres_user,
-                host=settings.postgres_host,
-                password=settings.postgres_password,
-                database=settings.postgres_database,
+                user=settings.postgresql_user,
+                host=settings.postgresql_host,
+                password=settings.postgresql_password,
+                database=settings.postgresql_database,
+                port=settings.postgresql_port + 1,
+            ),
+            PostgresConnectionDTO(
+                user=settings.postgresql_user,
+                host=settings.postgresql_host,
+                password=settings.postgresql_password,
+                database=settings.postgresql_database,
+                port=settings.postgresql_port + 2,
             ),
         ]
     )
 
     di[PostgresMasterConnection] = PostgresMasterConnection(
         connection=PostgresConnectionDTO(
-            user=settings.postgres_user,
-            host=settings.postgres_host,
-            password=settings.postgres_password,
-            database=settings.postgres_database,
+            user=settings.postgresql_user,
+            host=settings.postgresql_host,
+            password=settings.postgresql_password,
+            database=settings.postgresql_database,
+            port=settings.postgresql_port,
         )
     )

@@ -22,7 +22,8 @@ class UserInDb(BaseUser):
         from_attributes = True
 
 
-class UserCreate(BaseUser): ...
+class UserCreate(BaseUser):
+    ...
 
 
 class BaseUserFavoritePointCache(BaseModel):

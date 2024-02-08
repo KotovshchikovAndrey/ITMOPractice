@@ -6,11 +6,11 @@ class Settings(BaseSettings):
     server_port: int
     is_dev: bool
 
-    postgres_user: str
-    postgres_host: str
-    postgres_port: int
-    postgres_password: str
-    postgres_database: str
+    postgresql_user: str
+    postgresql_host: str
+    postgresql_password: str
+    postgresql_database: str
+    postgresql_port: int
 
     memcached_host: str
     memcached_port: int
