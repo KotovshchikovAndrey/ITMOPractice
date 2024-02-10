@@ -19,7 +19,7 @@ class PostgresSlaveConnection:
         self.connections = connections
 
     @asynccontextmanager
-    async def get_connection(self) -> asyncpg.Connection:
+    async def get_connection(self) -> tp.AsyncGenerator[asyncpg.Connection, tp.Any]:
         if not self._connection_pools:
             raise Exception("Connection pools is empty!")
 

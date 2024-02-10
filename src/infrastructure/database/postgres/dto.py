@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+import typing as tp
+from dataclasses import asdict, dataclass
 
 
 @dataclass
@@ -8,3 +9,6 @@ class PostgresConnectionDTO:
     password: str
     database: str
     port: int = 5432
+
+    def to_dict(self) -> tp.Self:
+        return asdict(self)

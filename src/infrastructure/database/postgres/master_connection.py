@@ -1,3 +1,4 @@
+import typing as tp
 from contextlib import asynccontextmanager
 
 import asyncpg
@@ -16,7 +17,7 @@ class PostgresMasterConnection:
         self.connection = connection
 
     @asynccontextmanager
-    async def get_connection(self) -> asyncpg.Connection:
+    async def get_connection(self) -> tp.AsyncGenerator[asyncpg.Connection, tp.Any]:
         if not self._connection_pool:
             raise Exception("Connection pool is not initialized!")
 
