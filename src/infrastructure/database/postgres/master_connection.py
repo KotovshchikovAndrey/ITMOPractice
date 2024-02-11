@@ -11,7 +11,7 @@ class PostgresMasterConnection:
     _pool_max_size: int = 3
     _timeout: int = 30
 
-    _connection_pool: asyncpg.Pool
+    _connection_pool: asyncpg.Pool = None
 
     def __init__(self, connection: PostgresConnectionDTO) -> None:
         self.connection = connection
@@ -28,6 +28,9 @@ class PostgresMasterConnection:
             await self._connection_pool.release(connection)
 
     async def connect(self) -> None:
+        if self._connection_pool is not None:
+            return
+
         self._connection_pool = await asyncpg.create_pool(
             min_size=self._pool_min_size,
             max_size=self._pool_max_size,

@@ -15,6 +15,16 @@ class Settings(BaseSettings):
     memcached_host: str
     memcached_port: int
 
+    redis_host: str
+    redis_port: int
+    redis_password: str
+
+    sender: str
+    smtp_host: str
+    smtp_port: int
+    smtp_user: str
+    smtp_password: str
+
     api_prefix: str = "/api/v1"
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

@@ -10,11 +10,11 @@ from infrastructure.config.settings import settings
 from infrastructure.helpers.databases import build_postgres_url
 
 database_url = build_postgres_url(
-    host=settings.postgres_host,
-    port=settings.postgres_port,
-    database=settings.postgres_database,
-    password=settings.postgres_password,
-    user=settings.postgres_user,
+    host=settings.postgresql_host,
+    port=settings.postgresql_port,
+    database=settings.postgresql_database,
+    password=settings.postgresql_password,
+    user=settings.postgresql_user,
 )
 
 # this is the Alembic Config object, which provides

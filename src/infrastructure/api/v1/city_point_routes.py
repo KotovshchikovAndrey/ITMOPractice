@@ -9,7 +9,7 @@ from domain.models.city_point import CityCreate, PointCreate, TagsCreate
 from domain.services.city_point_service import CityPointService
 from infrastructure.api.dto import city_point_responses as responses
 
-router = APIRouter(prefix="/city_point")
+router = APIRouter(prefix="/city-point")
 
 
 @router.get("/city", response_model=responses.GetCitiesResponse)

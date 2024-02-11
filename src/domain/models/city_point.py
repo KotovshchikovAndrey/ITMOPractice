@@ -74,4 +74,4 @@ class CityPointsCache(BaseCityPointsCache):
 
 
 class TagsCreate(BaseModel):
-    tags: conlist(str, min_length=1)
+    tags: tp.Annotated[tp.List[str], conlist(str, min_length=1)]

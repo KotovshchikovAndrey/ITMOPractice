@@ -5,7 +5,7 @@ from enum import StrEnum
 class ApiExceptionStatus(StrEnum):
     NOT_FOUND = "not found"
     FORBIDDEN = "forbidden"
-    AUTHORIZED = "authorized"
+    UNAUTHORIZED = "unauthorized"
     BAD_REQUEST = "bad request"
     INTERNAL = "internal"
 

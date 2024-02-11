@@ -15,7 +15,6 @@ class BaseUser(BaseModel):
 class UserInDb(BaseUser):
     name: tp.Annotated[str, Field(max_length=70, min_length=2)]
     surname: tp.Annotated[str, Field(max_length=70, min_length=2)]
-    birthday: tp.Optional[date] = None
     created_at: tp.Annotated[datetime, Field(default_factory=datetime.utcnow)]
 
     class Config:
@@ -25,7 +24,11 @@ class UserInDb(BaseUser):
 class UserCreate(BaseUser):
     name: tp.Annotated[str, Field(max_length=70, min_length=2)]
     surname: tp.Annotated[str, Field(max_length=70, min_length=2)]
-    birthday: tp.Optional[date] = None
+
+
+class UserEmailCodeSend(BaseUser):
+    class Config:
+        from_attributes = True
 
 
 class BaseUserFavoritePointCache(BaseModel):

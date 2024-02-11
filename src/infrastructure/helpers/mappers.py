@@ -12,7 +12,7 @@ class HttpExceptionStatusMapper:
             case ApiExceptionStatus.BAD_REQUEST:
                 return 400
 
-            case ApiExceptionStatus.AUTHORIZED:
+            case ApiExceptionStatus.UNAUTHORIZED:
                 return 401
 
             case ApiExceptionStatus.FORBIDDEN:

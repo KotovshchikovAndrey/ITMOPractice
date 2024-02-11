@@ -31,6 +31,9 @@ class UserService:
     async def get_user_by_pk(self, user_pk: UUID):
         return await self._repository.get_user_by_pk(user_pk)
 
+    async def get_user_by_email(self, email: str):
+        return await self._repository.get_user_by_email(email)
+
     async def create_user(self, user: UserCreate):
         if await self._is_email_occupied(user.email):
             raise EmailOccupied()

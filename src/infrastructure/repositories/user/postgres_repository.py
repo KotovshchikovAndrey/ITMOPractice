@@ -27,7 +27,6 @@ class PostgresUserRepository(IUserRepository):
                     email,
                     name,
                     surname,
-                    birthday,
                     created_at
                 FROM "user" WHERE pk = $1;"""
 
@@ -42,7 +41,6 @@ class PostgresUserRepository(IUserRepository):
                     email,
                     name,
                     surname,
-                    birthday,
                     created_at
                 FROM "user" WHERE email = $1;"""
 
@@ -57,9 +55,8 @@ class PostgresUserRepository(IUserRepository):
                     email,
                     name,
                     surname,
-                    birthday,
                     created_at)
-                VALUES ($1, $2, $3, $4, $5, $6) RETURNING pk;"""
+                VALUES ($1, $2, $3, $4, $5) RETURNING pk;"""
 
         async with self._write_connection.get_connection() as connection:
             return await connection.fetchval(query, *user.model_dump().values())

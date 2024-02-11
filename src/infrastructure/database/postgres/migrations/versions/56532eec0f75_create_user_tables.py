@@ -25,7 +25,6 @@ def upgrade() -> None:
         sa.Column("name", sa.String(70), nullable=False),
         sa.Column("surname", sa.String(70), nullable=False),
         sa.Column("email", sa.String(70), nullable=False, unique=True),
-        sa.Column("birthday", sa.Date(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=False), nullable=False),
     )
 
