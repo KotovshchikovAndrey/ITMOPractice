@@ -25,7 +25,6 @@ class RedisAuthRepository(IAuthRepository):
             value=token,
         )
 
-        print(score)
         return score is not None
 
     async def set_user_token(self, user_pk: UUID, token: str, ttl: int):

@@ -97,7 +97,7 @@ class TokenAuthService:
         await self._repository.set_user_login_code(
             user_pk=user.pk,
             code=login_code,
-            ttl=ConstSettings.login_code_ttl,  # 30 minutes
+            ttl=ConstSettings.login_code_ttl,
         )
 
         await self._mail_sender_service.send_login_code_by_email(
