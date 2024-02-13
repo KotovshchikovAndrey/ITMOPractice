@@ -10,7 +10,7 @@ from domain.services.user_service import UserService
 from infrastructure.api.dto import user_responses as responses
 from infrastructure.api.middlewares.authentication import authenticate_current_user
 
-router = APIRouter(prefix="/user")
+router = APIRouter(prefix="/users")
 
 
 @router.post("/")
@@ -25,17 +25,8 @@ async def create_new_user(
     }
 
 
-@router.get("/{user_pk}/favorite", response_model=responses.MyFavoritePointsResponse)
-async def get_my_favorite_points(
-    service: tp.Annotated[UserService, Depends(lambda: di[UserService])],
-    current_user: tp.Annotated[AuthenticatedUser, Depends(authenticate_current_user)],
-):
-    favorite_points = await service.get_user_favorite_points(current_user.pk)
-    return {"favorite_points": favorite_points}
-
-
-@router.patch(
-    "/{user_pk}/favorite/{point_pk}",
+@router.post(
+    "/favorites/{point_pk}",
     response_model=responses.SuccessMessageResponse,
 )
 async def add_point_to_favorite(
@@ -48,7 +39,7 @@ async def add_point_to_favorite(
 
 
 @router.delete(
-    "/{user_pk}/favorite/{point_pk}",
+    "/favorites/{point_pk}",
     response_model=responses.SuccessMessageResponse,
 )
 async def delete_point_from_favorite(

@@ -24,6 +24,8 @@ def setup_di_container() -> None:
 
 
 def _setup_dev_di_container() -> None:
+    di["secret_key"] = settings.secret_key
+
     connection_factory = DevPostgresConnectionFactory(
         connection_config=PostgresConnectionDTO(
             user=settings.postgresql_user,

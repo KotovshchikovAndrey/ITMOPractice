@@ -52,12 +52,17 @@ class PointCreate(PointDetail):
     tags: tp.Annotated[tp.Set[str], conlist(str, min_length=1)]
 
 
+class Tag(BaseModel):
+    pk: tp.Annotated[UUID, Field(default_factory=uuid4)]
+    name: tp.Annotated[str, Field(max_length=70)]
+
+
 class PointWithTag(BasePoint):
-    tag_name: str
+    tag: Tag
 
 
 class TagPoints(BaseModel):
-    tag_name: str
+    tag: Tag
     points: tp.List[BasePoint] = []
 
 

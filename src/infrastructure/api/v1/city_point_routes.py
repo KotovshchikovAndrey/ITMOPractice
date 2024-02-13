@@ -5,15 +5,17 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, File, UploadFile, status
 from kink import di
 
+from domain.models.auth import AuthenticatedUser
 from domain.models.city_point import CityCreate, PointCreate, TagsCreate
 from domain.services.city_point_service import CityPointService
 from infrastructure.api.dto import city_point_requests as requests
 from infrastructure.api.dto import city_point_responses as responses
+from infrastructure.api.middlewares.authentication import authenticate_current_user
 
-router = APIRouter(prefix="/city-point")
+router = APIRouter()
 
 
-@router.get("/city", response_model=responses.GetCitiesResponse)
+@router.get("/cities", response_model=responses.GetCitiesResponse)
 async def get_cities(
     service: tp.Annotated[CityPointService, Depends(lambda: di[CityPointService])],
     limit: tp.Optional[int] = None,
@@ -23,17 +25,24 @@ async def get_cities(
     return {"cities": cities}
 
 
-@router.get("/city/{city_pk}", response_model=responses.GetCityPointsResponse)
+@router.get("/cities/{city_pk}", response_model=responses.GetCityPointsResponse)
 async def get_city_points(
     service: tp.Annotated[CityPointService, Depends(lambda: di[CityPointService])],
+    current_user: tp.Annotated[AuthenticatedUser, Depends(authenticate_current_user)],
     city_pk: UUID,
 ):
-    city, points = await service.get_city_points_grouped_by_tag(city_pk)
+    city, points = (
+        await service.get_city_points_grouped_by_tag_merged_with_favorite_points(
+            city_pk=city_pk,
+            user_pk=current_user.pk,
+        )
+    )
+
     return {"city": city, "points": points}
 
 
 @router.post(
-    "/city",
+    "/cities",
     status_code=status.HTTP_201_CREATED,
     response_model=responses.CityCreateResponse,
 )
@@ -54,7 +63,7 @@ async def create_new_city(
     }
 
 
-@router.get("/point/{point_pk}", response_model=responses.PointDetailResponse)
+@router.get("/points/{point_pk}", response_model=responses.PointDetailResponse)
 async def get_point_detail(
     service: tp.Annotated[CityPointService, Depends(lambda: di[CityPointService])],
     point_pk: UUID,
@@ -64,7 +73,7 @@ async def get_point_detail(
 
 
 @router.post(
-    "/point",
+    "/points",
     status_code=status.HTTP_201_CREATED,
     response_model=responses.PointCreateResponse,
 )
@@ -86,7 +95,7 @@ async def create_new_point(
 
 
 @router.post(
-    "/tag",
+    "/tags",
     status_code=status.HTTP_201_CREATED,
     response_model=responses.SuccessMessageResponse,
 )

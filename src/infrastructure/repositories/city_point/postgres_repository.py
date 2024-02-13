@@ -1,4 +1,5 @@
 import typing as tp
+from typing import List
 from uuid import UUID
 
 from kink import inject
@@ -9,6 +10,7 @@ from domain.models.city_point import (
     PointDetail,
     PointInDb,
     PointWithTag,
+    Tag,
 )
 from domain.repositories.city_point_repository import ICityPointRepository
 from infrastructure.database.postgres.master_connection import PostgresMasterConnection
@@ -56,15 +58,23 @@ class PostgresCityPointRepository(ICityPointRepository):
         query = """SELECT
                     p.pk, 
                     p.title, 
-                    p.coordinates,
-                    pt.tag_name as tag_name
+                    p.coordinates::geometry::point,
+                    t.pk AS tag_pk,
+                    t.name AS tag_name
                 FROM point AS p
                     JOIN point_tag AS pt ON pt.point_pk = p.pk
+                    JOIN tag AS t ON t.pk = pt.tag_pk
                 WHERE p.city_pk = $1;"""
 
         async with self._read_connection.get_connection() as connection:
             rows = await connection.fetch(query, city_pk)
-            return [PointWithTag(**dict(row)) for row in rows]
+            result = []
+            for row in rows:
+                row_data = dict(row)
+                tag = Tag(pk=row_data.pop("tag_pk"), name=row_data.pop("tag_name"))
+                result.append(PointWithTag(**row_data, tag=tag))
+
+            return result
 
     async def get_point_by_pk(self, point_pk: UUID):
         query = """SELECT
@@ -73,7 +83,7 @@ class PostgresCityPointRepository(ICityPointRepository):
                     subtitle,
                     description,
                     image_url,
-                    coordinates
+                    coordinates::geometry::point
                 FROM point WHERE pk = $1;"""
 
         async with self._read_connection.get_connection() as connection:
@@ -85,8 +95,9 @@ class PostgresCityPointRepository(ICityPointRepository):
         query = """SELECT
                     pk, 
                     title, 
-                    coordinates
-                FROM point WHERE coordinates[0] = $1 AND coordinates[1] = $2;"""
+                    coordinates::geometry::point
+                FROM point WHERE ST_X(coordinates::geometry) = $1 
+                    AND ST_Y(coordinates::geometry) = $2;"""
 
         async with self._read_connection.get_connection() as connection:
             row = await connection.fetchrow(query, *coordinates)
@@ -97,15 +108,19 @@ class PostgresCityPointRepository(ICityPointRepository):
         query = """INSERT INTO point (
                     pk,
                     title, 
-                    coordinates,
                     subtitle, 
                     description, 
                     image_url, 
-                    city_pk) 
-                VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING pk;"""
+                    city_pk,
+                    coordinates) 
+                VALUES ($1, $2, $3, $4, $5, $6, ST_POINT($7, $8)) RETURNING pk;"""
 
         async with self._write_connection.get_connection() as connection:
-            return await connection.fetchval(query, *point.model_dump().values())
+            return await connection.fetchval(
+                query,
+                *point.model_dump(exclude=("coordinates",)).values(),
+                *point.coordinates
+            )
 
     async def favorite_point_exists(self, user_pk: UUID, point_pk: UUID):
         query = """SELECT pk FROM favorite_point 
@@ -115,20 +130,41 @@ class PostgresCityPointRepository(ICityPointRepository):
             pk = await connection.fetchval(query, user_pk, point_pk)
             return pk is not None
 
+    async def get_favorite_points_by_city(self, user_pk: UUID, city_pk: UUID):
+        query = """SELECT
+                    p.pk, 
+                    p.title, 
+                    p.coordinates::geometry::point
+                FROM point AS p
+                    JOIN favorite_point AS fp ON fp.point_pk = p.pk
+                WHERE fp.user_pk = $1 AND p.city_pk = $2;"""
+
+        async with self._read_connection.get_connection() as connection:
+            rows = await connection.fetch(query, user_pk, city_pk)
+            return [BasePoint(**dict(row)) for row in rows]
+
     async def get_favorite_points_with_tag(self, user_pk: UUID):
         query = """SELECT
                     p.pk, 
                     p.title, 
-                    p.coordinates,
-                    pt.tag_name as tag_name
+                    p.coordinates::geometry::point,
+                    t.pk AS tag_pk,
+                    t.name AS tag_name
                 FROM point AS p
                     JOIN favorite_point AS fp ON fp.point_pk = p.pk
                     JOIN point_tag AS pt ON pt.point_pk = p.pk
+                    JOIN tag AS t ON t.pk = pt.tag_pk
                 WHERE fp.user_pk = $1;"""
 
         async with self._read_connection.get_connection() as connection:
             rows = await connection.fetch(query, user_pk)
-            return [PointWithTag(**dict(row)) for row in rows]
+            result = []
+            for row in rows:
+                row_data = dict(row)
+                tag = Tag(pk=row_data.pop("tag_pk"), name=row_data.pop("tag_name"))
+                result.append(PointWithTag(**row_data, tag=tag))
+
+            return result
 
     async def set_favorite_point(self, user_pk: UUID, point_pk: UUID):
         query = """INSERT INTO favorite_point (
@@ -152,16 +188,22 @@ class PostgresCityPointRepository(ICityPointRepository):
             rows = await connection.fetch(query)
             return [dict(row)["name"] for row in rows]
 
-    async def create_tags(self, tags: tp.Iterable[str]):
-        query = """INSERT INTO tag VALUES ($1);"""
-        async with self._write_connection.get_connection() as connection:
-            await connection.executemany(query, [(tag,) for tag in tags])
+    async def get_tags_by_names(self, tag_names: tp.Set[str]):
+        query = """SELECT pk, name FROM tag WHERE name = ANY($1::text[]);"""
+        async with self._read_connection.get_connection() as connection:
+            rows = await connection.fetch(query, tag_names)
+            return [Tag(**dict(row)) for row in rows]
 
-    async def set_tags_for_point(self, tags: tp.Iterable[str], point_pk: UUID):
+    async def create_tags(self, tags: tp.Iterable[Tag]):
+        query = """INSERT INTO tag VALUES ($1, $2);"""
+        async with self._write_connection.get_connection() as connection:
+            await connection.executemany(query, [(tag.pk, tag.name) for tag in tags])
+
+    async def set_tags_for_point(self, tags: tp.Iterable[Tag], point_pk: UUID):
         query = """INSERT INTO point_tag (
                     point_pk, 
-                    tag_name) 
+                    tag_pk) 
                 VALUES ($1, $2);"""
 
         async with self._write_connection.get_connection() as connection:
-            await connection.executemany(query, [(point_pk, tag) for tag in tags])
+            await connection.executemany(query, [(point_pk, tag.pk) for tag in tags])

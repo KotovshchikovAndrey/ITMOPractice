@@ -21,7 +21,8 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     op.create_table(
         "tag",
-        sa.Column("name", sa.String(70), primary_key=True),
+        sa.Column("pk", sa.UUID(), primary_key=True),
+        sa.Column("name", sa.String(70), unique=True),
     )
 
     op.create_table(
@@ -57,23 +58,23 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column(
-            "tag_name",
-            sa.String(70),
-            sa.ForeignKey("tag.name", ondelete="CASCADE"),
+            "tag_pk",
+            sa.UUID(),
+            sa.ForeignKey("tag.pk", ondelete="CASCADE"),
             nullable=False,
         ),
     )
 
-    op.execute("""ALTER TABLE point ADD coordinates Point NOT NULL;""")
+    op.execute("""ALTER TABLE point ADD coordinates GEOGRAPHY(Point) NOT NULL;""")
 
-    op.execute(
-        """CREATE UNIQUE INDEX ON point (cast(coordinates[0] as float), cast(coordinates[1] as float));"""
-    )
+    # op.execute(
+    #     """CREATE UNIQUE INDEX ON point (cast(coordinates[0] as float), cast(coordinates[1] as float));"""
+    # )
 
     op.create_unique_constraint(
         constraint_name="point_tag_unique_constraint",
         table_name="point_tag",
-        columns=["point_pk", "tag_name"],
+        columns=["point_pk", "tag_pk"],
     )
 
 

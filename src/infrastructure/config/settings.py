@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     smtp_user: str
     smtp_password: str
 
+    secret_key: str
+
     api_prefix: str = "/api/v1"
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

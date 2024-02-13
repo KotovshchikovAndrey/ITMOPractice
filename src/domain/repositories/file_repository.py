@@ -9,5 +9,4 @@ class IFileRepository(tp.Protocol):
         """Return file url"""
 
     @abstractmethod
-    async def get_file(self, file_url: str) -> BytesIO:
-        ...
+    async def get_file(self, file_url: str) -> BytesIO: ...

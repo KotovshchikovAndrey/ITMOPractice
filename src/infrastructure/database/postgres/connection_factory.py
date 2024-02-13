@@ -8,12 +8,10 @@ from infrastructure.database.postgres.slave_connection import PostgresSlaveConne
 
 class IPostgresConnectionFactory:
     @abstractmethod
-    def create_mester(self) -> PostgresMasterConnection:
-        ...
+    def create_mester(self) -> PostgresMasterConnection: ...
 
     @abstractmethod
-    def create_slave(self) -> PostgresSlaveConnection:
-        ...
+    def create_slave(self) -> PostgresSlaveConnection: ...
 
 
 class DevPostgresConnectionFactory(IPostgresConnectionFactory):

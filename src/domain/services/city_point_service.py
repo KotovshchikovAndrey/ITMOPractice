@@ -17,6 +17,7 @@ from domain.models.city_point import (
     PointCreate,
     PointInDb,
     PointWithTag,
+    Tag,
     TagPoints,
 )
 from domain.repositories.cache_repository import ICacheRepository
@@ -82,6 +83,18 @@ class CityPointService:
         print("get city points from database!")
         return city, grouped_city_points
 
+    async def get_city_points_grouped_by_tag_merged_with_favorite_points(
+        self, user_pk: UUID, city_pk: UUID
+    ):
+        city, city_points = await self.get_city_points_grouped_by_tag(city_pk)
+        favorite_points = await self._repository.get_favorite_points_by_city(
+            user_pk=user_pk,
+            city_pk=city_pk,
+        )
+
+        city_points.append(TagPoints(tag=Tag(name="Избранное"), points=favorite_points))
+        return city, city_points
+
     async def create_point(
         self,
         point: PointCreate,
@@ -103,11 +116,10 @@ class CityPointService:
             new_point.set_image_url(image_url)
 
         new_point_pk = await self._repository.create_point(new_point)
+        tags = await self._repository.get_tags_by_names(point.tags)
         async with asyncio.TaskGroup() as tg:
             tg.create_task(self._cache_storage.clear_city_points_cache())
-            tg.create_task(
-                self._repository.set_tags_for_point(point.tags, new_point_pk)
-            )
+            tg.create_task(self._repository.set_tags_for_point(tags, new_point_pk))
 
         return new_point_pk
 
@@ -132,19 +144,23 @@ class CityPointService:
     async def create_tags(self, tags: tp.List[str]):
         exists_tags = await self._repository.get_all_tag_names()
         tags_for_create = set(tags).difference(exists_tags)
-        await self._repository.create_tags(tags_for_create)
+        await self._repository.create_tags(
+            tags=[Tag(name=tag) for tag in tags_for_create]
+        )
 
     async def _group_points_by_tag(self, points: tp.List[PointWithTag]):
-        tag_points: tp.Dict[str, BasePoint] = {}
+        tag_points: tp.Dict[tp.Tuple[UUID, str], BasePoint] = {}
         for point in points:
-            if tag_points.get(point.tag_name) is None:
-                tag_points[point.tag_name] = []
+            key = (point.tag.pk, point.tag.name)
+            if tag_points.get(key) is None:
+                tag_points[key] = []
 
-            tag_points[point.tag_name].append(BasePoint.model_validate(point))
+            tag_points[key].append(BasePoint.model_validate(point))
 
         grouped_tag_points: tp.List[TagPoints] = []
-        for tag, points in tag_points.items():
-            grouped_tag_points.append(TagPoints(tag_name=tag, points=points))
+        for tag_tuple, points in tag_points.items():
+            tag = Tag(pk=tag_tuple[0], name=tag_tuple[1])
+            grouped_tag_points.append(TagPoints(tag=tag, points=points))
 
         return grouped_tag_points
 
