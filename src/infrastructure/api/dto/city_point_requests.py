@@ -25,7 +25,6 @@ class PointCreateRequest:
         city_pk: tp.Annotated[UUID, Form()],
         tags: tp.Annotated[tp.Set[str], Form()],
     ) -> PointCreate:
-        print(tags)
         return PointCreate(
             title=title,
             coordinates=coordinates,

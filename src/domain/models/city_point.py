@@ -1,7 +1,7 @@
 import typing as tp
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field, conlist
+from pydantic import BaseModel, Field, conlist, field_serializer
 
 
 class CityInDb(BaseModel):

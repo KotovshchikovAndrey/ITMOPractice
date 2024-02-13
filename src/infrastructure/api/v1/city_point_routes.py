@@ -5,12 +5,12 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, File, UploadFile, status
 from kink import di
 
-from domain.models.auth import AuthenticatedUser
 from domain.models.city_point import CityCreate, PointCreate, TagsCreate
+from domain.models.user import UserInDb
 from domain.services.city_point_service import CityPointService
 from infrastructure.api.dto import city_point_requests as requests
 from infrastructure.api.dto import city_point_responses as responses
-from infrastructure.api.middlewares.authentication import authenticate_current_user
+from infrastructure.api.middlewares.authentication import get_current_user
 
 router = APIRouter()
 
@@ -28,9 +28,13 @@ async def get_cities(
 @router.get("/cities/{city_pk}", response_model=responses.GetCityPointsResponse)
 async def get_city_points(
     service: tp.Annotated[CityPointService, Depends(lambda: di[CityPointService])],
-    current_user: tp.Annotated[AuthenticatedUser, Depends(authenticate_current_user)],
+    current_user: tp.Annotated[tp.Optional[UserInDb], Depends(get_current_user)],
     city_pk: UUID,
 ):
+    if current_user is None:
+        city, points = await service.get_city_points_grouped_by_tag(city_pk)
+        return {"city": city, "points": points}
+
     city, points = (
         await service.get_city_points_grouped_by_tag_merged_with_favorite_points(
             city_pk=city_pk,

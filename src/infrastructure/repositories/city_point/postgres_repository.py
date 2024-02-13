@@ -96,8 +96,7 @@ class PostgresCityPointRepository(ICityPointRepository):
                     pk, 
                     title, 
                     coordinates::geometry::point
-                FROM point WHERE ST_X(coordinates::geometry) = $1 
-                    AND ST_Y(coordinates::geometry) = $2;"""
+                FROM point WHERE coordinates = ST_POINT($1, $2);"""
 
         async with self._read_connection.get_connection() as connection:
             row = await connection.fetchrow(query, *coordinates)

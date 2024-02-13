@@ -12,7 +12,10 @@ from domain.models.auth import (
 )
 from domain.services.auth.jwt_auth_service import JwtAuthService
 from infrastructure.api.dto import auth_responses as responses
-from infrastructure.api.middlewares.authentication import authenticate_current_user
+from infrastructure.api.middlewares.authentication import (
+    authenticate_current_user,
+    get_finger_print,
+)
 
 router = APIRouter(prefix="/auth")
 
@@ -58,7 +61,7 @@ async def confirm_user_login(
     service: tp.Annotated[JwtAuthService, Depends(lambda: di[JwtAuthService])],
     user: UserLoginConfirm,
     response: Response,
-    finger_print: tp.Optional[str] = Header(None),
+    finger_print: tp.Annotated[str, Depends(get_finger_print)],
 ):
     if finger_print is None:
         raise HTTPException(
@@ -90,7 +93,7 @@ async def logout_user(
     service: tp.Annotated[JwtAuthService, Depends(lambda: di[JwtAuthService])],
     current_user: tp.Annotated[AuthenticatedUser, Depends(authenticate_current_user)],
     response: Response,
-    finger_print: tp.Optional[str] = Header(None),
+    finger_print: tp.Annotated[str, Depends(get_finger_print)],
 ):
     if finger_print is None:
         raise HTTPException(

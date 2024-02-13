@@ -1,4 +1,3 @@
-from .auth.redis_repository import RedisAuthRepository
 from .auth_code.redis_repository import RedisAuthCodeRepository
 from .cache.memcached_repository import InMemoryCacheRepository
 from .city_point.postgres_repository import PostgresCityPointRepository
@@ -11,7 +10,6 @@ __all__ = (
     "LocalFileRepository",
     "InMemoryCacheRepository",
     "PostgresUserRepository",
-    "RedisAuthRepository",
     "RedisJwtRepository",
     "RedisAuthCodeRepository",
 )

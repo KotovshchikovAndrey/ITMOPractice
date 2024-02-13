@@ -65,11 +65,9 @@ def upgrade() -> None:
         ),
     )
 
-    op.execute("""ALTER TABLE point ADD coordinates GEOGRAPHY(Point) NOT NULL;""")
-
-    # op.execute(
-    #     """CREATE UNIQUE INDEX ON point (cast(coordinates[0] as float), cast(coordinates[1] as float));"""
-    # )
+    op.execute(
+        """ALTER TABLE point ADD coordinates GEOGRAPHY(Point) UNIQUE NOT NULL;"""
+    )
 
     op.create_unique_constraint(
         constraint_name="point_tag_unique_constraint",
