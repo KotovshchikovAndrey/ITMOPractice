@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, field_serializer
 
-from domain.models.city_point import CityInDb, PointDetail, TagPoints, BasePoint
+from domain.models.city_point import BasePoint, CityInDb, PointDetail, TagPoints
 from infrastructure.api.dto.common import SuccessMessageResponse
 
 

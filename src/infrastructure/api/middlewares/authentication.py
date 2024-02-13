@@ -1,6 +1,6 @@
 import typing as tp
 
-from fastapi import Cookie, Depends, HTTPException, Header, status
+from fastapi import Cookie, Depends, Header, HTTPException, status
 from kink import di
 
 from domain.exceptions.authentication_failed import AuthenticationFailed
