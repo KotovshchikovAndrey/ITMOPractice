@@ -5,24 +5,11 @@ from fastapi import APIRouter, Depends
 from kink import di
 
 from domain.models.auth import AuthenticatedUser
-from domain.models.user import UserCreate
 from domain.services.user_service import UserService
 from infrastructure.api.dto import user_responses as responses
 from infrastructure.api.middlewares.authentication import authenticate_current_user
 
 router = APIRouter(prefix="/users")
-
-
-@router.post("/")
-async def create_new_user(
-    service: tp.Annotated[UserService, Depends(lambda: di[UserService])],
-    user: UserCreate,
-):
-    user_pk = await service.create_user(user)
-    return {
-        "user_pk": user_pk,
-        "message": "user success created!",
-    }
 
 
 @router.post(

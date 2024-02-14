@@ -1,11 +1,11 @@
 import asyncio
 from contextlib import asynccontextmanager
-from pydantic import BaseModel
+
+import redis.asyncio as aioredis
 import uvicorn
 from broadcaster import Broadcast
 from fastapi import FastAPI
-import redis.asyncio as aioredis
-
+from pydantic import BaseModel
 
 redis_cache = aioredis.from_url(
     "redis://127.0.0.1:6479",

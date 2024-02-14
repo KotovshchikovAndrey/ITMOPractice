@@ -1,6 +1,6 @@
 import typing as tp
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Response, status
+from fastapi import APIRouter, Depends, Response, status
 from kink import di
 
 from domain.config.settings import ConstSettings
@@ -60,15 +60,9 @@ async def login_user(
 async def confirm_user_login(
     service: tp.Annotated[JwtAuthService, Depends(lambda: di[JwtAuthService])],
     user: UserLoginConfirm,
-    response: Response,
     finger_print: tp.Annotated[str, Depends(get_finger_print)],
+    response: Response,
 ):
-    if finger_print is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"message": "Отпечаток устройства не был передан!"},
-        )
-
     logined_user, token = await service.confirm_user_login(user, finger_print)
     response.set_cookie(
         key="token",
@@ -92,15 +86,9 @@ async def confirm_user_login(
 async def logout_user(
     service: tp.Annotated[JwtAuthService, Depends(lambda: di[JwtAuthService])],
     current_user: tp.Annotated[AuthenticatedUser, Depends(authenticate_current_user)],
-    response: Response,
     finger_print: tp.Annotated[str, Depends(get_finger_print)],
+    response: Response,
 ):
-    if finger_print is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"message": "Отпечаток устройства не был передан!"},
-        )
-
     await service.logout_user(user_pk=current_user.pk, token=current_user.token)
     response.delete_cookie(key="token")
 
