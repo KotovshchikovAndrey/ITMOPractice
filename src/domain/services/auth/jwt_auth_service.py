@@ -101,8 +101,10 @@ class JwtAuthService:
 
         return user_in_db, jwt
 
-    async def logout_user(self, jwt: str):
-        await self._repository.delete_jwt(jwt)
+    async def logout_user(self, jwt: str, finger_print: str):
+        await self._repository.delete_jwt(
+            jwt_hash=self._get_jwt_hash(jwt, finger_print)
+        )
 
     async def _send_login_code_by_email(self, user: UserEmailCodeSend) -> None:
         login_code = await self._auth_code_storage.get_user_login_code(user.pk)

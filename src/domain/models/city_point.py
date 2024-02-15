@@ -1,7 +1,7 @@
 import typing as tp
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field, conlist, field_serializer
+from pydantic import BaseModel, Field, conlist
 
 
 class CityInDb(BaseModel):
@@ -33,7 +33,7 @@ class BasePoint(BaseModel):
 
 class PointInDb(BasePoint):
     subtitle: str
-    description: tp.Annotated[str, Field(default="")]
+    description: tp.Annotated[tp.Optional[str], Field(default="")]
     image_url: tp.Optional[str] = None
     city_pk: UUID
 
@@ -43,7 +43,7 @@ class PointInDb(BasePoint):
 
 class PointDetail(BasePoint):
     subtitle: str
-    description: tp.Annotated[str, Field(default="")]
+    description: tp.Annotated[tp.Optional[str], Field(default="")]
     image_url: tp.Optional[str] = None
 
 
