@@ -10,7 +10,7 @@ class CityCreateRequest:
     @staticmethod
     def as_form(
         name: tp.Annotated[str, Form()],
-        description: tp.Annotated[tp.Optional[str], Form()] = None,
+        description: tp.Annotated[tp.Optional[str], Form()] = "",
     ) -> CityCreate:
         return CityCreate(name=name, description=description)
 
@@ -21,9 +21,9 @@ class PointCreateRequest:
         title: tp.Annotated[str, Form()],
         coordinates: tp.Annotated[tp.Tuple[float, float], Form()],
         subtitle: tp.Annotated[str, Form()],
-        description: tp.Annotated[str, Form()],
         city_pk: tp.Annotated[UUID, Form()],
         tags: tp.Annotated[tp.Set[str], Form()],
+        description: tp.Annotated[tp.Optional[str], Form()] = "",
     ) -> PointCreate:
         return PointCreate(
             title=title,

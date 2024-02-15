@@ -89,7 +89,7 @@ async def logout_user(
     finger_print: tp.Annotated[str, Depends(get_finger_print)],
     response: Response,
 ):
-    await service.logout_user(user_pk=current_user.pk, token=current_user.token)
+    await service.logout_user(jwt=current_user.token, finger_print=finger_print)
     response.delete_cookie(key="token")
 
     return {"message": "Успешный выход из аккаунта!"}
